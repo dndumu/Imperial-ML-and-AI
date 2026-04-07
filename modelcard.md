@@ -1,7 +1,7 @@
 # Model Card: AHEBO
 
 ## 1. Overview
-Adaptive Hybrid Ensemble Bayesian Optimisation (AHEBO)
+Adaptive Hybrid Ensemble Bayesian Optimisation (AHEBO) approach for finding the maximum of eight unknown (black-box) functions with 2D, 2D, 3D, 4D, 4D, 5D, 6D and 8D inputs respectively, with each function having one scalar output, with very limited known data for each function and limited query budget. 
 
 ## 2. Intended Use
 Suitable for:
@@ -13,8 +13,7 @@ Not suitable for:
 - Deterministic problems
 
 ## 3. Details
-Adopts an overarching strategy of exploration, then balanced exploration and exploitation, and finally exploitation focused.
-Uses PCA(1D) EVR to split functions into low, mid and high dimensionality groups with a different approach for each group.
+AHEBO adopts an overarching strategy of exploration, then balanced exploration and exploitation, and finally exploitation focused.  It uses PCA(1D) EVR to split functions into low, mid and high dimensionality groups with a different approach for each group.
 
 Group A: For f1–f3 (low dimension)
 1.	“candidate pool ensemble”: full-space + PCA(1D/2D)-guided candidates, pick best by acquisition
