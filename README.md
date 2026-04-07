@@ -42,7 +42,7 @@ This project develops:
 | f5 | 4D | 20 | 0.340 | 1089 |
 | f6 | 5D | 20 | 0.353 | -0.7143 |
 | f7 | 6D | 30 | 0.284 | 1.365 |
-| f8 | 8D | 40 | 0.201 | 9598 |
+| f8 | 8D | 40 | 0.201 | 9.598 |
 
 ### Data Format
 - Combined CSV format:

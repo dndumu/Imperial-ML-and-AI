@@ -11,14 +11,17 @@ It enables the study of structured decision-making under uncertainty, particular
 - For query rounds: 0 ≤ x ≤ 1.0
 
 ### Key Statistics
-- f1: max=0.0001255, mean=-0.0001864, std=0.0008544
-- f2: max=0.6631, mean=0.2166, std=0.2937
-- f3: max=-0.03484, mean=-0.1241, std=0.1048
-- f4: max=-0.8539, mean=-15.09, std=9.407
-- f5: max=4695, mean=1033, std=1643
-- f6: max=-0.2971, mean=-1.265, std=0.5725
-- f7: max=1.365, mean=0.2978, std=0.4015
-- f8: max=9.81, mean=8.014, std=1.023
+
+| Function | Max | Mean | STD | 
+|----------|-----|--------------|-------------|
+| f1 |0.0001255|-0.0001864|0.0008544|
+| f2 |0.6631|0.2166|0.2937|
+| f3 |-0.03484|-0.1241|0.1048|
+| f4 |-0.8539|-15.09|9.407|
+| f5 |4695|1033|1643|
+| f6 |-0.2971|-1.265|0.5725|
+| f7 |1.365|0.2978|0.4015|
+| f8 |9.81|8.014|1.023|
 
 ### Gaps
 - Sparse coverage in higher dimensions (f7–f8)
