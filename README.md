@@ -1,166 +1,147 @@
-# Black-Box Optimisation (BBO) Capstone Project
+# Black-Box Optimisation Capstone Project
 
-## Project Overview
-This project aims to **maximise eight unknown (black-box) functions** with input dimensions:
-2D, 2D, 3D, 4D, 4D, 5D, 6D, and 8D.  
-Each function has a **single scalar output** and is evaluated under a **strict query budget (13 queries per function)**.
+Adaptive Hybrid Ensemble Bayesian Optimisation (AHEBO) for maximising eight unknown functions under a strict query budget.
 
-This setting mirrors real-world problems where:
-- The true function is unknown
-- Data is sparse
-- Each query is costly
+## Project overview
 
-**Examples:**
-- Resource exploration (oil, mining)
-- Hyperparameter tuning in ML
-- Regulatory technology (SupTech/RegTech)
-- Infrastructure optimisation (e.g., water leakage)
-- Workforce scheduling
+This project addresses a black-box optimisation problem in which the objective functions are unknown, observations are sparse, and each new evaluation is expensive. The task is to maximise eight scalar-output functions with input dimensions of 2D, 2D, 3D, 4D, 4D, 5D, 6D, and 8D.
 
----
+The optimisation setting is representative of problems such as expensive experiment design, hyperparameter tuning, resource exploration, infrastructure optimisation, and workforce scheduling.
 
-## Key Learning Objectives
-This project develops:
+The central challenge is to make good sequential decisions under uncertainty: infer useful structure from limited observations, choose promising candidates, and balance exploration with exploitation.
+
+## Challenge constraints
+
+- Eight unknown functions: `function_1` through `function_8`
+- One continuous scalar output (`y`) per evaluation
+- Inputs bounded in the unit interval: `0 ≤ xi < 1`
+- A strict budget of 13 new queries per function
+- Sparse initial data and no assumed analytical form for the functions
+
+## Repository contents
+
+```text
+Imperial-ML-and-AI/
+├── README.md
+├── data/
+│   └── data.csv
+├── notebooks/
+│   ├── ensemble_bo_f1_f3_ard_svc.ipynb
+│   ├── ensemble_bo_f4_f6_ard_rf_lasso_nn.ipynb
+│   └── ensemble_bo_f7_f8_turbo_ard_nn_grad.ipynb
+├── utils/
+│   └── function_data_analysis.ipynb
+├── results/
+│   └── plots/
+│       ├── function_1_rownum_vs_y.png
+│       ├── function_2_rownum_vs_y.png
+│       ├── function_3_rownum_vs_y.png
+│       ├── function_4_rownum_vs_y.png
+│       ├── function_5_rownum_vs_y.png
+│       ├── function_6_rownum_vs_y.png
+│       ├── function_7_rownum_vs_y.png
+│       └── function_8_rownum_vs_y.png
+├── datasheet.md
+├── modelcard.md
+└── docs/
+    ├── ensemble_bo_analysis.md
+    ├── ensemble_bo_f1_f3.md
+    ├── ensemble_bo_f4_f6.md
+    └── ensemble_bo_f7_f8.md
+```
+
+The repository is the compact submission artefact. The parent `Capstone project` folder contains the broader week-by-week working archive, intermediate experiments, planning documents, and templates; those materials are intentionally outside this repository.
+
+## Dataset
+
+`data/data.csv` contains the combined observations with the following schema:
+
+```text
+function, x1, x2, x3, x4, x5, x6, x7, x8, y
+```
+
+The number of populated observations by function is:
+
+| Function | Input dimension | Populated observations | Maximum observed `y` |
+|---|---:|---:|---:|
+| `function_1` | 2 | 18 | 0.0001255 |
+| `function_2` | 2 | 18 | 0.663146 |
+| `function_3` | 3 | 23 | -0.0348353 |
+| `function_4` | 4 | 38 | -0.853868 |
+| `function_5` | 4 | 28 | 4695.23 |
+| `function_6` | 5 | 28 | -0.297123 |
+| `function_7` | 6 | 38 | 1.36497 |
+| `function_8` | 8 | 48 | 9.81032 |
+
+The CSV contains 239 populated observations and eight blank separator rows. The dataset description and intended-use notes are in [`datasheet.md`](datasheet.md).
+
+## AHEBO approach
+
+The solution uses an adaptive hybrid ensemble rather than relying on a single surrogate model. The overall schedule moves from broad exploration to balanced exploration and exploitation, then to local refinement as the query budget is consumed.
+
+### Function groups
+
+| Group | Functions | Observed structure | Main strategy |
+|---|---|---|---|
+| A | `function_1`–`function_3` | Higher PCA(1D) explained variance | PCA-guided candidate generation with GP-based Bayesian optimisation and SVC support |
+| B | `function_4`–`function_6` | Intermediate structure and dimensionality | GP and Random Forest ensemble with ARD and LASSO feature screening |
+| C | `function_7`–`function_8` | Lower PCA(1D) explained variance and higher dimensionality | Trust-region Bayesian optimisation with ARD and neural-network directional refinement |
+
+### Model components
+
+- Gaussian Processes with automatic relevance determination (ARD)
+- Random Forest and ExtraTrees-style tree ensembles
+- Support Vector Regression/classification components where appropriate
+- LASSO and permutation-importance feature screening
+- Neural networks for local directional refinement
+- UCB and Expected Improvement acquisition functions
+- Trust-region search for the higher-dimensional functions
+
+### Acquisition schedule
+
+- Early queries favour uncertainty and global exploration.
+- Middle queries balance uncertainty with predicted improvement.
+- Late queries concentrate on the most promising regions.
+
+The exact model and acquisition mix is adapted by function group because the eight functions exhibit different dimensionality, smoothness, scale, and apparent structure.
+
+## Results and analysis
+
+The notebooks contain the final grouped optimisation workflows:
+
+- [`notebooks/ensemble_bo_f1_f3_ard_svc.ipynb`](notebooks/ensemble_bo_f1_f3_ard_svc.ipynb) — lower-dimensional functions with ARD and SVC-supported candidate selection.
+- [`notebooks/ensemble_bo_f4_f6_ard_rf_lasso_nn.ipynb`](notebooks/ensemble_bo_f4_f6_ard_rf_lasso_nn.ipynb) — intermediate-dimensional functions with ARD, Random Forest, LASSO, and neural-network refinement.
+- [`notebooks/ensemble_bo_f7_f8_turbo_ard_nn_grad.ipynb`](notebooks/ensemble_bo_f7_f8_turbo_ard_nn_grad.ipynb) — higher-dimensional functions with trust-region search, ARD, and gradient-based neural-network refinement.
+- [`utils/function_data_analysis.ipynb`](utils/function_data_analysis.ipynb) — exploratory function and data analysis.
+
+The resulting plots are in [`results/plots/`](results/plots/). The model assumptions, intended use, limitations, and performance summary are documented in [`modelcard.md`](modelcard.md).
+
+Detailed strategy documentation is available in [`docs/`](docs/):
+
+- [`docs/ensemble_bo_f1_f3.md`](docs/ensemble_bo_f1_f3.md) — the ARD GP/PCA/SVC approach for functions 1–3.
+- [`docs/ensemble_bo_f4_f6.md`](docs/ensemble_bo_f4_f6.md) — the GP/Random Forest/LASSO approach for functions 4–6.
+- [`docs/ensemble_bo_f7_f8.md`](docs/ensemble_bo_f7_f8.md) — the trust-region/ARD/SVR/NN approach for functions 7–8.
+- [`docs/ensemble_bo_analysis.md`](docs/ensemble_bo_analysis.md) — the analysis and rationale leading to the three approaches.
+
+## Learning objectives
+
+This project develops practical experience in:
+
 - Decision-making under uncertainty
-- Exploration vs exploitation trade-offs
-- Surrogate modelling
-- Adaptive strategy design
-- Experimental design thinking
+- Exploration versus exploitation
+- Surrogate modelling with very small datasets
+- Sequential experimental design
+- Feature and dimensionality analysis
+- Adaptive strategy selection
+- Reproducible documentation of data and models
 
----
+## Limitations
 
-## The Data
+- The data is collected through a sequential optimisation process and is not an unbiased sample of the function domains.
+- Higher-dimensional functions are more difficult to model reliably with so few observations.
+- Surrogate predictions depend on the quality and coverage of the observed points.
+- Model performance should be interpreted in the context of the finite query budget rather than as a general-purpose supervised-learning benchmark.
 
-### Function Summary
+## Key takeaway
 
-| Function | Dim | Initial Data | PCA(1D) EVR | Initial Ymax |
-|----------|-----|--------------|-------------|--------------|
-| f1 | 2D | 10 | 0.653 | ~0 |
-| f2 | 2D | 10 | 0.793 | 0.6112 |
-| f3 | 3D | 15 | 0.523 | -0.0348 |
-| f4 | 4D | 30 | 0.355 | -4.026 |
-| f5 | 4D | 20 | 0.340 | 1089 |
-| f6 | 5D | 20 | 0.353 | -0.7143 |
-| f7 | 6D | 30 | 0.284 | 1.365 |
-| f8 | 8D | 40 | 0.201 | 9.598 |
-
-### Data Format
-- Combined CSV format:
-  `function, x1, x2, ..., x8, y`
-- Inputs constrained: `0 ≤ xi < 1`
-- Outputs: continuous scalar
-
----
-
-## Challenge Objectives
-- Maximise each function under:
-  - **13-query budget**
-  - **Unknown function structure**
-- Develop **adaptive strategies** using:
-  - Model selection
-  - Feature analysis
-  - Sequential learning
-
----
-
-## Technical Approach
-
-### 1. Overall Strategy
-A **hybrid ensemble approach** was adopted:
-- Combine multiple models
-- Adapt strategy over time
-- Balance exploration and exploitation:
-
-| Phase | Budget | Focus |
-|------|--------|------|
-| Early | ~30% | Exploration |
-| Mid | ~40% | Balance |
-| Late | ~30% | Exploitation |
-
----
-
-### 2. Function Grouping (by PCA EVR)
-
-| Group | Functions | EVR | Strategy |
-|------|----------|-----|---------|
-| A | f1–f3 | High (0.52–0.79) | PCA-guided BO + GP |
-| B | f4–f6 | Medium (~0.34) | GP + RF ensemble |
-| C | f7–f8 | Low (0.20–0.28) | Trust-region BO |
-
----
-
-### 3. Acquisition Schedule
-
-#### Group A
-- Early: UCB (kappa=5)
-- Mid: EI (xi=0.02–0.05)
-- Late: EI (xi→0)
-
-#### Group B
-- Early: UCB (kappa=4.5)
-- Mid: UCB/EI
-- Late: EI (xi=0.01)
-
-#### Group C
-- Early: Global exploration
-- Later: Trust-region BO (TuRBO-style)
-
----
-
-### 4. Model Strategy
-
-#### Core Models
-- Gaussian Process (GP)
-- Random Forest (RF)
-- Support Vector Regression (SVR)
-- Neural Networks (local refinement only)
-
-#### Key Insights
-- SVR:
-  - Strong: f4, f6, f8
-  - Weak: f1–f3, f5
-- Linear models rejected (poor fit)
-
----
-
-### 5. Dimensionality Analysis
-
-| Function | Original Dim | Reduced Dim |
-|----------|-------------|-------------|
-| f3 | 3 | 2 |
-| f4 | 4 | 3 |
-| f5 | 4 | 2–3 |
-| f6 | 5 | 4 |
-| f7 | 6 | 4 |
-| f8 | 8 | 5 |
-
-Approach:
-- Correlation analysis
-- Permutation importance
-- RF importance
-- SVR LOO analysis
-
----
-
-### 6. Advanced Enhancements
-- ARD kernels (dimension weighting)
-- LASSO screening
-- SVC gating
-- Trust-region scaling
-- Neural network directional refinement
-
----
-
-## Key Takeaways
-- BBO is fundamentally about **decision-making, not modelling**
-- Structure must be **inferred, not assumed**
-- Small data requires:
-  - uncertainty awareness
-  - adaptive strategies
-- Feature importance is **context-dependent**
-
----
-
-## Final Insight
-> This project is a prototype of intelligent resource allocation under uncertainty — a core skill in real-world data science.
-
+Black-box optimisation is primarily a problem of allocating scarce evaluations intelligently. The most useful model is not necessarily the most complex one; it is the model and acquisition strategy that make the best next decision given the current evidence.
